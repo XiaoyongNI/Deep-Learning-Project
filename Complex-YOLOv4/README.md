@@ -233,10 +233,9 @@ ${ROOT}
 └── src/
     ├── config/
     ├── cfg/
-        │   ├── complex_yolov3.cfg
-        │   ├── complex_yolov3_tiny.cfg
-        │   ├── complex_yolov4.cfg
-        │   ├── complex_yolov4_tiny.cfg
+        │   ├── complex_yolov4_hr.cfg
+        │   ├── complex_yolov4_lr.cfg
+    │   ├── input_config.py
     │   ├── train_config.py
     │   └── kitti_config.py
     ├── data_process/
@@ -260,6 +259,7 @@ ${ROOT}
     │   ├── train_utils.py
     │   └── visualization_utils.py
     ├── evaluate.py
+    ├── evaluate.sh
     ├── test.py
     ├── test.sh
     ├── train.py
@@ -272,10 +272,9 @@ ${ROOT}
 
 ```
 usage: train.py [-h] [--seed SEED] [--saved_fn FN] [--working-dir PATH]
-                [-a ARCH] [--cfgfile PATH] [--pretrained_path PATH]
-                [--img_size IMG_SIZE] [--hflip_prob HFLIP_PROB]
+                [-a ARCH] [--pretrained_path PATH] [--hflip_prob HFLIP_PROB]
                 [--cutout_prob CUTOUT_PROB] [--cutout_nholes CUTOUT_NHOLES]
-                [--cutout_ratio CUTOUT_RATIO]
+                [--cutout_ratio CUTOUT_RATIO] [--detector_type DETECTOR_TYPE]
                 [--cutout_fill_value CUTOUT_FILL_VALUE]
                 [--multiscale_training] [--mosaic] [--random-padding]
                 [--no-val] [--num_samples NUM_SAMPLES]
@@ -299,10 +298,10 @@ optional arguments:
   --saved_fn FN         The name using for saving logs, models,...
   --working-dir PATH    The ROOT working directory
   -a ARCH, --arch ARCH  The name of the model architecture
-  --cfgfile PATH        The path for cfgfile (only for darknet)
   --pretrained_path PATH
                         the path of the pretrained checkpoint
-  --img_size IMG_SIZE   the size of input image
+  --detector_type DETECTOR_TYPE 
+                        the detector chosen to be trained: fine or coarse
   --hflip_prob HFLIP_PROB
                         The probability of horizontal flip
   --cutout_prob CUTOUT_PROB
