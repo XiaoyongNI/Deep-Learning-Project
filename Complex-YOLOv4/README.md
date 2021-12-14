@@ -70,9 +70,11 @@ Please refer to several implementations of YOLOv4 using PyTorch DL framework:
 - [VCasecnikovs/Yet-Another-YOLOv4-Pytorch](https://github.com/VCasecnikovs/Yet-Another-YOLOv4-Pytorch)
 
 ### 2.4. How to run
+#### modified version : 
+#### To visualize patches, pass `patch` as an argument. Othervise, the full image is shown. (Only for visualization!)
+#### `detector_type` has to be specified as 'fine' if you need to visualize high resolution patches, options:'coarse' or 'fine'
 
 #### 2.4.1. Visualize the dataset (both BEV images from LiDAR and camera images)
-
 ```shell script
 cd src/data_process
 ```
@@ -81,13 +83,13 @@ cd src/data_process
 show the images in a bigger/smaller window)**_:
 
 ```shell script
-python kitti_dataloader.py --output-width 608
+python kitti_dataloader.py --output-width 608 --patch --detector_type coarse
 ```
 
 - To visualize mosaics that are composed from 4 BEV maps (Using during training only), let's execute:
 
 ```shell script
-python kitti_dataloader.py --show-train-data --mosaic --output-width 608 
+python kitti_dataloader.py --show-train-data --mosaic --output-width 608 --patch --detector_type fine
 ```
 
 By default, there is _**no padding**_ for the output mosaics, the feature could be activated by executing:
@@ -103,23 +105,27 @@ python kitti_dataloader.py --show-train-data --cutout_prob 1. --cutout_nholes 1 
 ```
 
 #### 2.4.2. Inference
-
+#### modified:
+#### No longer need to specify cfgfile and img_size, instead use `detector_type`
 Download the trained model from [**_here_**](https://drive.google.com/drive/folders/1RHD9PBvk-9SjbKwoi_Q1kl9-UGFo2Pth?usp=sharing), 
 then put it to `${ROOT}/checkpoints/` and execute:
 
 ```shell script
-python test.py --gpu_idx 0 --pretrained_path ../checkpoints/complex_yolov4/complex_yolov4_mse_loss.pth --cfgfile ./config/cfg/complex_yolov4.cfg --show_image
+python test.py --gpu_idx 0 --pretrained_path ../Model_complex_yolov4_epoch_300_coarse.pth --detector_type coarse --show_image
 ```
 
 #### 2.4.3. Evaluation
+#### modified:
+#### No longer need to specify cfgfile and img_size, instead use `detector_type`
 
 ```shell script
-python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --cfgfile <CFG> --img_size <SIZE> --conf-thresh <THRESH> --nms-thresh <THRESH> --iou-thresh <THRESH>
+python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --detector_type <fine or coarse> --conf-thresh <THRESH> --nms-thresh <THRESH> --iou-thresh <THRESH>
 ```
 (The `conf-thresh`, `nms-thresh`, and `iou-thresh` params can be adjusted. By default, these params have been set to _**0.5**_)
 
 #### 2.4.4. Training
-
+#### modified:
+#### No longer need to specify cfgfile and img_size, instead use `detector_type`(default:coarse)
 ##### 2.4.4.1. Single machine, single gpu
 
 ```shell script
