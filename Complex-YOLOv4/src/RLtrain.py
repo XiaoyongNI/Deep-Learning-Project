@@ -26,6 +26,7 @@ from tqdm import tqdm
 sys.path.append('./')
 #sys.path.append('../Complex-YOLOv4/src')
 
+import data_process.kitti_dataloader
 from data_process.kitti_dataloader import create_train_dataloader, create_val_dataloader
 from models.model_utils import create_model, make_data_parallel, get_num_parameters
 from utils.train_utils import create_optimizer, create_lr_scheduler, get_saved_state, save_checkpoint
@@ -47,7 +48,7 @@ parser.add_argument('--cv_dir', default='cv/tmp/', help='checkpoint directory (m
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--img_size', type=int, default=448, help='PN Image Size')
 parser.add_argument('--epoch_step', type=int, default=10000, help='epochs after which lr is decayed')
-parser.add_argument('--max_epochs', type=int, default=10000, help='total epochs to run')
+parser.add_argument('--max_epochs', type=int, default=200, help='total epochs to run')
 parser.add_argument('--num_workers', type=int, default=8, help='Number of Workers')
 parser.add_argument('--test_epoch', type=int, default=10, help='At every N epoch test the network')
 parser.add_argument('--parallel', action='store_true', default=False, help='use multiple GPUs for training')
@@ -203,17 +204,26 @@ trainloader, train_sampler = create_train_dataloader(configs)
 
 num_actions = 9 # Hyperparameter, should be equal to num_windows * num_windows
 num_windows = 3 # Number of windows in one dimension
-epoch = 200
+#epoch = 200
+
+cudaFLAG = False
 
 def train(epoch):
     agent.train()
     rewards, rewards_baseline, policies = [], [], []
 
     # iterate dataset
-    for batch_idx, (inputs, targets) in tqdm.tqdm(enumerate(trainloader), total=len(trainloader)):
+    #for batch_idx, (inputs, targets) in tqdm.tqdm(enumerate(trainloader), total=len(trainloader)):
+    #print(len(trainloader))
+
+    for batch_idx, batch_data in enumerate(tqdm(trainloader)):
+        #data_time.update(time.time() - start_time)
+        _, inputs, targets = batch_data
+
         inputs = Variable(inputs)
         if not args.parallel:
-            inputs = inputs.cuda()
+            if cudaFLAG:
+                inputs = inputs.cuda()
 
         # Actions by the Agent
         probs = F.sigmoid(agent.forward(inputs))
@@ -274,7 +284,9 @@ if args.load is not None:
 # Parallelize the models if multiple GPUs available - Important for Large Batch Size to Reduce Variance
 if args.parallel:
     agent = nn.DataParallel(agent)
-agent.cuda()
+
+if cudaFLAG:
+    agent.cuda()
 
 # Update the parameters of the policy network
 optimizer = optim.Adam(agent.parameters(), lr=args.lr)

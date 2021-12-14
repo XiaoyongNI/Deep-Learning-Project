@@ -7,7 +7,7 @@ import shutil
 import json
 
 from utils import utils_detector
-from dataset.dataloader import CustomDatasetFromImages
+#from dataset.dataloader import CustomDatasetFromImages
 from constants import base_dir_groundtruth, base_dir_detections_cd, base_dir_detections_fd, base_dir_metric_cd, base_dir_metric_fd
 from constants import num_windows, img_size_fd, img_size_cd
 
@@ -122,12 +122,12 @@ def get_transforms(img_size):
 
     return transform_train, transform_test
 
-def get_dataset(img_size, root='data/'):
-    transform_train, transform_test = get_transforms(img_size)
-    trainset = CustomDatasetFromImages(root+'train.csv', transform_train)
-    testset = CustomDatasetFromImages(root+'val.csv', transform_test)
-
-    return trainset, testset
+#def get_dataset(img_size, root='data/'):
+#    transform_train, transform_test = get_transforms(img_size)
+#    trainset = CustomDatasetFromImages(root+'train.csv', transform_train)
+#    testset = CustomDatasetFromImages(root+'val.csv', transform_test)
+#
+#    return trainset, testset
 
 def set_parameter_requires_grad(model, feature_extracting):
     # When loading the models, make sure to call this function to update the weights
