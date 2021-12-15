@@ -40,7 +40,7 @@ def create_train_dataloader(configs):
     train_sampler = None
     	
     # configs.distributed = False  # For testing  yuanzhi
-    configs.distributed = False  # For testing
+    #configs.distributed = False  # For testing
     
     if configs.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)

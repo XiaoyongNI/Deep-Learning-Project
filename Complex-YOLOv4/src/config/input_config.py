@@ -18,9 +18,15 @@ img_size = 608.
 
 LR_IMAGE_CFG = edict({
     "PATCH_NUM": 1, "IMAGE_SIZE": img_size, "PATCH_SIZE": img_size,
-    "BEV_WIDTH": int(img_size), "BEV_HEIGHT": int(img_size)
+    "BEV_WIDTH": int(img_size/5), "BEV_HEIGHT": int(img_size/5)
 })
 complete_info(LR_IMAGE_CFG)
+
+HR_IMAGE_CFG = edict({
+    "PATCH_NUM": 1, "IMAGE_SIZE": img_size, "PATCH_SIZE": img_size,
+    "BEV_WIDTH": int(img_size), "BEV_HEIGHT": int(img_size)
+})
+complete_info(HR_IMAGE_CFG)
 
 LR_PATCH_CFG = edict({
     "PATCH_NUM": 2, "IMAGE_SIZE": img_size, "PATCH_SIZE": 320.,
