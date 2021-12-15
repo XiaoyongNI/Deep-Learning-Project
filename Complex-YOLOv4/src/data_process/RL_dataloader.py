@@ -20,21 +20,22 @@ class RL_dataset(torch.utils.data.Dataset):
         path_hr, img_hr, target_hr = self.dataset_hr[index]
         assert path_lr == path_hr
         assert torch.equal(target_lr,target_hr)
-
-        # Remove empty placeholder targets
-        def collate_target(targets):
-            n_target = targets.size(0)
-            for i in range(len(targets)):
-                targets[i,0] = i
-            return targets
-
-        target_lr = collate_target(target_lr)
-        target_hr = collate_target(target_hr)
         return path_lr, img_lr, img_hr, target_lr
 
     def __len__(self):
         return len(self.dataset_lr)
 
+    def collate_fn(self,batch):
+        paths,imgs_lr,imgs_hr,targets = list(zip(*batch))
+        # Remove empty placeholder targets
+        targets = [boxes for boxes in targets if boxes is not None]
+        # Add sample index to targets
+        for i, boxes in enumerate(targets):
+            boxes[:, 0] = i
+        targets = torch.cat(targets, 0)
+        imgs_lr = torch.stack(imgs_lr)
+        imgs_hr = torch.stack(imgs_hr)
+        return paths,imgs_lr,imgs_hr,targets
 
 def create_RL_dataloader(configs_lr, configs_hr):
     dataset_lr = KittiDataset(configs_lr.dataset_dir, configs_lr.input_cfg, mode='train', lidar_transforms=None,
@@ -51,10 +52,11 @@ def create_RL_dataloader(configs_lr, configs_hr):
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, batch_size=configs.batch_size, shuffle=(train_sampler is None),
                                   pin_memory=configs.pin_memory, num_workers=configs.num_workers, sampler=train_sampler,
-                                  collate_fn=None)
+                                  collate_fn=train_dataset.collate_fn)
 
     return train_dataloader, train_sampler
 
+#def create_patch(image,target)
 
 if __name__ == "__main__":
     import argparse
@@ -71,8 +73,6 @@ if __name__ == "__main__":
                         help='Number of threads for loading data')
     parser.add_argument('--batch_size', type=int, default=1,
                         help='mini-batch size (default: 1)')
-    parser.add_argument('--output-width', type=int, default=608,
-                        help='the width of showing output, the height maybe vary')
 
     configs = edict(vars(parser.parse_args()))
     configs.distributed = False  # For testing
@@ -86,5 +86,5 @@ if __name__ == "__main__":
     RL_dataloader,_ = create_RL_dataloader(configs_lr, configs_hr)
 
     for batch_id, (img_path, img_lr, img_hr, target) in enumerate(RL_dataloader):
-        pass
+        break
 
