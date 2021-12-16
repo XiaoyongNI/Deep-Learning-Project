@@ -23,6 +23,7 @@ sys.path.append('./')
 from data_process.RL_dataloader import create_RL_dataloader, create_patch
 import argparse
 from utils import utils, utils_detector
+from constants import num_windows, num_actions, img_size_fd, img_size_cd
 
 # config for RL agent
 parser = argparse.ArgumentParser(description='PolicyNetworkTraining')
@@ -104,7 +105,7 @@ class RegNet(nn.Module):
     def __init__(self, cfg, num_classes=16,BEV_WIDTH=608):
         super(RegNet, self).__init__()
         self.cfg = cfg
-        self.in_planes = BEV_WIDTH
+        self.in_planes = 64
         self.conv1 = nn.Conv2d(3, BEV_WIDTH, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(BEV_WIDTH)
@@ -178,11 +179,6 @@ def RegNetY_400MF(num_classes,BEV_WIDTH):
     return RegNet(cfg,num_classes,BEV_WIDTH)
 
 
-# create an agent with RegNetX_200MF
-num_classes = 16
-BEV_WIDTH = 121
-agent = RegNetX_200MF(num_classes,BEV_WIDTH)
-
 # config for Complex YOLO for dataloader
 parser = argparse.ArgumentParser(description='Complexer YOLO Implementation')
 # parser.add_argument('--img_size', type=int, default=64,
@@ -205,13 +201,13 @@ configs_hr = deepcopy(configs)
 configs_hr.input_cfg = HR_IMAGE_CFG
 trainloader, train_sampler = create_RL_dataloader(configs_lr, configs_hr)
 
-num_actions = 16 # Hyperparameter, should be equal to num_windows * num_windows
-num_windows = 4 # Number of windows in one dimension
+#num_actions = num_windows * num_windows # Hyperparameter, should be equal to num_windows * num_windows
+#num_windows = 4 # Number of windows in one dimension
 # number of actions equals to the number of patches 
 
 cudaFLAG = False
 
-def train(epoch):
+def train(epoch, agent):
     agent.train()
     rewards, rewards_baseline, policies = [], [], []
 
@@ -283,6 +279,14 @@ def train(epoch):
     log_value('train_baseline_reward', torch.cat(rewards_baseline, 0).mean(), epoch)
     log_value('train_unique_policies', len(policy_set), epoch)
 
+# Save the args to the checkpoint directory
+#configure(args.cv_dir+'/log', flush_secs=5)
+
+# create an agent with RegNetX_200MF
+num_classes = num_actions
+BEV_WIDTH = img_size_cd * num_windows
+agent = RegNetX_200MF(num_classes,BEV_WIDTH)
+
 # ---- Load the pre-trained model ----------------------
 start_epoch = 0
 if args.load is not None:
@@ -302,11 +306,9 @@ if cudaFLAG:
 # Update the parameters of the policy network
 optimizer = optim.Adam(agent.parameters(), lr=args.lr)
 
-# Save the args to the checkpoint directory
-configure(args.cv_dir+'/log', flush_secs=5)
 
 # Start training and testing
 for epoch in range(start_epoch, start_epoch+args.max_epochs+1):
-    train(epoch)
+    train(epoch,agent)
     #if epoch % args.test_epoch == 0:
     #    test(epoch)

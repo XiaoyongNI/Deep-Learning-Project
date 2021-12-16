@@ -73,7 +73,7 @@ def read_offsets(img_paths, num_actions):
         offset_cd = torch.zeros((len(img_paths), num_actions))
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
-        img_id = img_path[0].split('image_2/')[1].replace('.png', '.npy')
+        img_id = img_path[index].split('image_2/')[1].replace('.png', '.npy')
         offset_fd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_fd, img_id)).flatten())
         offset_cd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_cd, img_id)).flatten())
 
