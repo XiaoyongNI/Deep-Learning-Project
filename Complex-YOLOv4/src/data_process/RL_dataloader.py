@@ -66,8 +66,8 @@ def create_patch(img_lr, img_hr, target):
     img_hr: (batch_size,c,H,W)
     target: (num_targets, 8), target[i,0] is the index of image in this batch which i-th target corresponds to
     :return
-    patch_lr: (4*batch_size,c,h,w), low resolution patches
-    patch_hr: (4*batch_size,c,H,W), high resolution patches
+    patch_lr: (4*batch_size,c,h',w'), low resolution patches
+    patch_hr: (4*batch_size,c,H',W'), high resolution patches
     *** for patch tensors, the indices 4*i,4*i+1,4*i+2,4*i+3 of the first axis correspond to the patches
         divided from the ith image in this batch , i = 0,1,..,batch_size-1
 
