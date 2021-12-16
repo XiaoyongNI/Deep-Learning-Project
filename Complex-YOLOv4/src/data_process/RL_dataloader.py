@@ -50,10 +50,10 @@ def create_RL_dataloader(configs_lr, configs_hr):
                               random_padding=False)
     train_dataset = RL_dataset(dataset_lr, dataset_hr)
     train_sampler = None
-    if configs.distributed:
+    if configs_lr.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    train_dataloader = DataLoader(train_dataset, batch_size=configs.batch_size, shuffle=(train_sampler is None),
-                                  pin_memory=configs.pin_memory, num_workers=configs.num_workers, sampler=train_sampler,
+    train_dataloader = DataLoader(train_dataset, batch_size=configs_lr.batch_size, shuffle=(train_sampler is None),
+                                  pin_memory=configs_lr.pin_memory, num_workers=configs_lr.num_workers, sampler=train_sampler,
                                   collate_fn=train_dataset.collate_fn)
 
     return train_dataloader, train_sampler

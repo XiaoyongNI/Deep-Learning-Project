@@ -62,10 +62,18 @@ def get_detected_boxes(policy, file_dirs, metrics, set_labels):
 
     return metrics, [[[[set_labels]]]]
 
-def read_offsets(image_ids, num_actions):
-    offset_fd = torch.zeros((len(image_ids), num_actions)).cuda()
-    offset_cd = torch.zeros((len(image_ids), num_actions)).cuda()
-    for index, img_id in enumerate(image_ids):
+cudaFLAG = False
+
+def read_offsets(img_paths, num_actions):
+    if cudaFLAG:
+        offset_fd = torch.zeros((len(img_paths), num_actions)).cuda()
+        offset_cd = torch.zeros((len(img_paths), num_actions)).cuda()
+    else:
+        offset_fd = torch.zeros((len(img_paths), num_actions))
+        offset_cd = torch.zeros((len(img_paths), num_actions))
+    for index, img_path in enumerate(img_paths):
+        # get img_id from img_path, eg img_id = '002096.npy'
+        img_id = img_path[0].split('image_2/')[1].replace('.png', '.npy')
         offset_fd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_fd, img_id)).flatten())
         offset_cd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_cd, img_id)).flatten())
 
@@ -98,8 +106,11 @@ def compute_reward(offset_fd, offset_cd, policy, beta, sigma):
     # Reward function favors policies that drops patches only if the classifier
     # successfully categorizes the image
     offset_cd += beta
+    # R_acc
     reward_patch_diff = (offset_fd - offset_cd)*policy + -1*((offset_fd - offset_cd)*(1-policy))
+    # R_cost
     reward_patch_acqcost = (policy.size(1) - policy.sum(dim=1)) / policy.size(1)
+    # R_c
     reward_img = reward_patch_diff.sum(dim=1) + sigma * reward_patch_acqcost
     reward = reward_img.unsqueeze(1)
     return reward.float()
