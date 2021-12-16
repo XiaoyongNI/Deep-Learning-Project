@@ -38,10 +38,6 @@ def create_train_dataloader(configs):
                                  num_samples=configs.num_samples, mosaic=configs.mosaic,
                                  random_padding=configs.random_padding)
     train_sampler = None
-    	
-    # configs.distributed = False  # For testing  yuanzhi
-    #configs.distributed = False  # For testing
-    
     if configs.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, batch_size=configs.batch_size, shuffle=(train_sampler is None),

@@ -5,7 +5,8 @@ import tqdm
 import torch
 import numpy as np
 from shapely.geometry import Polygon
-
+import shapely
+shapely.speedups.disable()
 sys.path.append('../')
 
 import data_process.kitti_bev_utils as bev_utils

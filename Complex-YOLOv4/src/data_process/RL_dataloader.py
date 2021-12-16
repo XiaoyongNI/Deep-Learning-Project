@@ -60,14 +60,15 @@ def create_RL_dataloader(configs_lr, configs_hr):
 
 
 def create_patch(img_lr, img_hr, target):
-    '''
+    """
     :param
     img_lr: (batch_size,c,h,w)
     img_hr: (batch_size,c,H,W)
     target: (num_targets, 8), target[i,0] is the index of image in this batch which i-th target corresponds to
     :return
-    patch_lr: (4*batch_size,c,h',w'), low resolution patches
-    patch_hr: (4*batch_size,c,H',W'), high resolution patches
+    patch_lr: (patch_num*batch_size,c,h',w'), low resolution patches
+    patch_hr: (patch_num*batch_size,c,H',W'), high resolution patches
+    patch_hr: (patch_num*batch_size,c,H',W'), high resolution patches
     *** for patch tensors, the indices 4*i,4*i+1,4*i+2,4*i+3 of the first axis correspond to the patches
         divided from the ith image in this batch , i = 0,1,..,batch_size-1
 
@@ -75,14 +76,14 @@ def create_patch(img_lr, img_hr, target):
     *** patch_target[i,0] is the index of patch which i-th target corresponds to (i = 0,1..,new_num_targets),
     namely patch_target[i,0] == j where patch_lr[j,:,:,:] and patch_hr[j,:,:,:] contain the i-th target.
     *** Note that there might be more targets (i.e. new_num_target > num_targets) due to overlap between two patches.
-    '''
+    """
     batch_size = img_lr.size(0)
     patch_size = [LR_PATCH_CFG.BEV_WIDTH, HR_PATCH_CFG.BEV_WIDTH]
     img_size = [img_lr.size(2), img_hr.size(2)]
     patch_num = LR_PATCH_CFG.PATCH_NUM
-    ## calcalate overlap in pixel: may be not accuarate for other patch numbers
+    ## calculate overlap in pixel: may be not accuarate for other patch numbers
     overlap = [int((patch_num * patch_size[i] - img_size[i]) / (patch_num - 1)) for i in range(2)]
-    target[:, 2:6] *= img_lr.size(2) # convert to pixel position in low resolution image
+    target[:, 2:6] *= img_lr.size(2)  # convert to pixel position in low resolution image
 
     patch_lr = []
     patch_hr = []
@@ -126,13 +127,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Complexer YOLO Implementation')
 
-    # parser.add_argument('--img_size', type=int, default=64,
-    #                     help='the size of input image')
     parser.add_argument('--num_samples', type=int, default=None,
                         help='Take a subset of the dataset to run and debug')
     parser.add_argument('--num_workers', type=int, default=1,
                         help='Number of threads for loading data')
-    parser.add_argument('--batch_size', type=int, default=2,
+    parser.add_argument('--batch_size', type=int, default=1,
                         help='mini-batch size (default: 1)')
 
     configs = edict(vars(parser.parse_args()))
@@ -147,6 +146,11 @@ if __name__ == "__main__":
     RL_dataloader, _ = create_RL_dataloader(configs_lr, configs_hr)
 
     for batch_id, (img_path, img_lr, img_hr, target) in enumerate(RL_dataloader):
-        patch_lr,patch_hr,patch_target = create_patch(img_lr, img_hr, target)
+        patch_lr, patch_hr, patch_target = create_patch(img_lr, img_hr, target)
+        print(list(img_lr.size()))
+        print(list(img_hr.size()))
+        print(list(patch_lr.size()))
+        print(list(patch_hr.size()))
+        print(list(target.size()))
+        print(list(patch_target.size()))
         break
-

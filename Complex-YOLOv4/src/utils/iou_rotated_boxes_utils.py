@@ -14,6 +14,8 @@ import sys
 
 import torch
 from shapely.geometry import Polygon
+import shapely
+shapely.speedups.disable()
 from scipy.spatial import ConvexHull
 
 sys.path.append('../')
