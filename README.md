@@ -10,3 +10,4 @@
 - Dataloader for RL
 
 ### 
+Get image id and patch id using the first column of coarse.txt and fine.txt
