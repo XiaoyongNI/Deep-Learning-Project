@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import numpy as np
+#import csv
 import random
 from easydict import EasyDict as edict
 import warnings
@@ -207,6 +208,18 @@ trainloader, train_sampler = create_RL_dataloader(configs_lr, configs_hr)
 
 cudaFLAG = False
 
+'''
+RLtrain_ids = []
+with open('../dataset/kitti/val_id.txt', newline='') as csvfile:
+    spamreader = csv.reader(csvfile,delimiter=' ')
+    for row in spamreader:
+        id_int = int(float(row[0]))
+        id_str = '00' + str(id_int)
+        if id_str not in RLtrain_ids:
+            RLtrain_ids.append(id_str)
+'''
+
+
 def train(epoch, agent):
     agent.train()
     rewards, rewards_baseline, policies = [], [], []
@@ -214,6 +227,8 @@ def train(epoch, agent):
     for batch_idx, (img_paths, img_lr, img_hr, targets) in enumerate(tqdm(trainloader)):
         #patch_lr,patch_hr,patch_target = create_patch(img_lr, img_hr, target)
         #data_time.update(time.time() - start_time)
+
+        #img_id = img_path[index].split('image_2/')[1].replace('.png', '.npy')
 
         inputs = img_lr
         inputs = Variable(inputs)

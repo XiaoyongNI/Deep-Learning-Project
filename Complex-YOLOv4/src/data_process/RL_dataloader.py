@@ -40,11 +40,11 @@ class RL_dataset(torch.utils.data.Dataset):
 
 
 def create_RL_dataloader(configs_lr, configs_hr):
-    dataset_lr = KittiDataset(configs_lr.dataset_dir, configs_lr.input_cfg, mode='train', lidar_transforms=None,
+    dataset_lr = KittiDataset(configs_lr.dataset_dir, configs_lr.input_cfg, mode='val', lidar_transforms=None,
                               aug_transforms=None, multiscale=False,
                               num_samples=configs_lr.num_samples, mosaic=False,
                               random_padding=False)
-    dataset_hr = KittiDataset(configs_hr.dataset_dir, configs_hr.input_cfg, mode='train', lidar_transforms=None,
+    dataset_hr = KittiDataset(configs_hr.dataset_dir, configs_hr.input_cfg, mode='val', lidar_transforms=None,
                               aug_transforms=None, multiscale=False,
                               num_samples=configs_lr.num_samples, mosaic=False,
                               random_padding=False)
