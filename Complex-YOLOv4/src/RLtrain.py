@@ -295,7 +295,7 @@ def train(epoch, agent):
     log_value('train_baseline_reward', torch.cat(rewards_baseline, 0).mean(), epoch)
     log_value('train_unique_policies', len(policy_set), epoch)
 
-    if epoch % args.save_intervals and epoch != 0:
+    if epoch % args.save_intervals==0 and epoch != 0:
         agent_state_dict = agent.module.state_dict() if args.parallel else agent.state_dict()
         state = {
             'agent': agent_state_dict,
