@@ -8,3 +8,5 @@ num_actions = 16 # Hyperparameter, should be equal to num_windows * num_windows
 num_windows = 4 # Number of windows in one dimension
 img_size_fd = 880 # Image size used to train the fine level detector
 img_size_cd = 220 # Image size used to train the coarse level detector
+
+iou_threshold = 0.75 

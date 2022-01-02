@@ -5,11 +5,13 @@ import torchvision.models as torchmodels
 import numpy as np
 import shutil
 import json
+import pandas as pd
 
 from utils import utils_detector
 #from dataset.dataloader import CustomDatasetFromImages
 from constants import base_dir_groundtruth, base_dir_detections_cd, base_dir_detections_fd, base_dir_metric_cd, base_dir_metric_fd
 from constants import num_windows, img_size_fd, img_size_cd
+from constants import iou_threshold
 
 def save_args(__file__, args):
     shutil.copy(os.path.basename(__file__), args.cv_dir)
@@ -65,6 +67,7 @@ def get_detected_boxes(policy, file_dirs, metrics, set_labels):
 cudaFLAG = False
 
 def read_offsets(img_paths, num_actions):
+    #iou_threshold = 0.5
     if cudaFLAG:
         offset_fd = torch.zeros((len(img_paths), num_actions)).cuda()
         offset_cd = torch.zeros((len(img_paths), num_actions)).cuda()
@@ -73,9 +76,36 @@ def read_offsets(img_paths, num_actions):
         offset_cd = torch.zeros((len(img_paths), num_actions))
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
-        img_id = img_path[index].split('image_2/')[1].replace('.png', '.npy')
-        offset_fd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_fd, img_id)).flatten())
-        offset_cd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_cd, img_id)).flatten())
+        img_id = int(img_path[index].split('image_2/')[1].replace('.png', ''))
+        df_val_id = pd.read_csv(base_dir_metric_fd+'val_id.txt', sep=" ", header=None)
+        df_coarse = pd.read_csv(base_dir_metric_fd+'coarse.txt', sep=" ", header=None)
+        df_fine = pd.read_csv(base_dir_metric_fd+'fine.txt', sep=" ", header=None)
+        # find index of image
+        select_indices = list(np.where(df_val_id[0] == img_id)[0])
+        # empty lists
+        patch_ids = []
+        patch_coarse_iou = []
+        patch_coarse_score = []
+        patch_fine_iou = []
+        patch_fine_score = []
+        # line numbers
+        select_indices = list(np.where(df_val_id[0] == img_id)[0])
+        for id_patch in select_indices:
+            # patch id of image
+            patch_ids.append(int(df_val_id.iloc[id_patch][1]))
+            # iou value
+            patch_coarse_iou.append((df_coarse.iloc[id_patch][2]))
+            patch_fine_iou.append((df_fine.iloc[id_patch][2]))
+            # score value
+            patch_coarse_score.append((df_coarse.iloc[id_patch][3]))
+            patch_fine_score.append((df_fine.iloc[id_patch][3]))
+        # write offset_fd & offset_cd
+        for i in range(0,len(patch_ids)):
+            offset_fd[index,patch_ids[i]] = torch.from_numpy(np.array(patch_fine_iou[i]))
+            offset_cd[index,patch_ids[i]] = torch.from_numpy(np.array(patch_coarse_iou[i]))
+        #data = pd.read_csv(base_dir_metric_fd+'val_id.txt', sep=" ", header=None)
+        #offset_fd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_fd, img_id)).flatten())
+        #offset_cd[index, :] = torch.from_numpy(np.loadtxt('{}/{}'.format(base_dir_metric_cd, img_id)).flatten())
 
     return offset_fd, offset_cd
 
