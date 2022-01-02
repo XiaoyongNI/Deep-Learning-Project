@@ -64,7 +64,7 @@ def get_detected_boxes(policy, file_dirs, metrics, set_labels):
 
     return metrics, [[[[set_labels]]]]
 
-cudaFLAG = False
+cudaFLAG = True
 
 def read_offsets(img_paths, num_actions):
     #iou_threshold = 0.5
@@ -76,7 +76,7 @@ def read_offsets(img_paths, num_actions):
         offset_cd = torch.zeros((len(img_paths), num_actions))
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
-        img_id = int(img_path[index].split('image_2/')[1].replace('.png', ''))
+        img_id = int(img_path[0].split('image_2/')[1].replace('.png', ''))
         df_val_id = pd.read_csv(base_dir_metric_fd+'val_id.txt', sep=" ", header=None)
         df_coarse = pd.read_csv(base_dir_metric_fd+'coarse.txt', sep=" ", header=None)
         df_fine = pd.read_csv(base_dir_metric_fd+'fine.txt', sep=" ", header=None)

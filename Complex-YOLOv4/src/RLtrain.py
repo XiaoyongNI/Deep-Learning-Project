@@ -31,7 +31,8 @@ parser = argparse.ArgumentParser(description='PolicyNetworkTraining')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--data_dir', default='data/', help='data directory')
 parser.add_argument('--load', default=None, help='checkpoint to load agent from')
-parser.add_argument('--cv_dir', default='cv/tmp/', help='checkpoint directory (models and logs are saved here)')
+parser.add_argument('--cv_dir', default='../RLsave/old', help='checkpoint directory (models and logs are saved here)')
+parser.add_argument('--save_intervals',default = 10,help='At every N epoch save the checkpoint')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--img_size', type=int, default=448, help='PN Image Size')
 parser.add_argument('--epoch_step', type=int, default=10000, help='epochs after which lr is decayed')
@@ -106,7 +107,7 @@ class RegNet(nn.Module):
     def __init__(self, cfg, num_classes=16,BEV_WIDTH=608):
         super(RegNet, self).__init__()
         self.cfg = cfg
-        self.in_planes = 64
+        self.in_planes = BEV_WIDTH
         self.conv1 = nn.Conv2d(3, BEV_WIDTH, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(BEV_WIDTH)
@@ -188,7 +189,7 @@ parser.add_argument('--num_samples', type=int, default=None,
                     help='Take a subset of the dataset to run and debug')
 parser.add_argument('--num_workers', type=int, default=1,
                     help='Number of threads for loading data')
-parser.add_argument('--batch_size', type=int, default=2,
+parser.add_argument('--batch_size', type=int, default=16,
                     help='mini-batch size (default: 1)')
 configs = edict(vars(parser.parse_args()))
 configs.distributed = False  # For testing
@@ -206,7 +207,7 @@ trainloader, train_sampler = create_RL_dataloader(configs_lr, configs_hr)
 #num_windows = 4 # Number of windows in one dimension
 # number of actions equals to the number of patches 
 
-cudaFLAG = False
+cudaFLAG = True
 
 '''
 RLtrain_ids = []
@@ -294,8 +295,19 @@ def train(epoch, agent):
     log_value('train_baseline_reward', torch.cat(rewards_baseline, 0).mean(), epoch)
     log_value('train_unique_policies', len(policy_set), epoch)
 
+    if epoch % args.save_intervals and epoch != 0:
+        agent_state_dict = agent.module.state_dict() if args.parallel else agent.state_dict()
+        state = {
+            'agent': agent_state_dict,
+            'epoch': epoch,
+            'reward': reward,
+        }
+        torch.save(state, args.cv_dir + '/ckpt_E_%d_R_%.2E' % (epoch, reward))
+
 # Save the args to the checkpoint directory
-#configure(args.cv_dir+'/log', flush_secs=5)
+if not os.path.exists(args.cv_dir):
+    os.makedirs(args.cv_dir)
+configure(args.cv_dir+'/log', flush_secs=5)
 
 # create an agent with RegNetX_200MF
 num_classes = num_actions
