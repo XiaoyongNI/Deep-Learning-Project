@@ -39,15 +39,15 @@ class RL_dataset(torch.utils.data.Dataset):
         return paths, imgs_lr, imgs_hr, targets
 
 
-def create_RL_dataloader(configs_lr, configs_hr):
+def create_RL_dataloader(configs_lr, configs_hr,split_first = True):
     dataset_lr = KittiDataset(configs_lr.dataset_dir, configs_lr.input_cfg, mode='val', lidar_transforms=None,
                               aug_transforms=None, multiscale=False,
                               num_samples=configs_lr.num_samples, mosaic=False,
-                              random_padding=False)
+                              random_padding=False,split_first = split_first)
     dataset_hr = KittiDataset(configs_hr.dataset_dir, configs_hr.input_cfg, mode='val', lidar_transforms=None,
                               aug_transforms=None, multiscale=False,
                               num_samples=configs_lr.num_samples, mosaic=False,
-                              random_padding=False)
+                              random_padding=False,split_first = split_first)
     train_dataset = RL_dataset(dataset_lr, dataset_hr)
     train_sampler = None
     if configs_lr.distributed:
