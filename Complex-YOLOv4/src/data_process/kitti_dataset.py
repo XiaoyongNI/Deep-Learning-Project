@@ -27,7 +27,7 @@ import config.kitti_config as cnf
 
 class KittiDataset(Dataset):
     def __init__(self, dataset_dir, config=None, mode='train',lidar_transforms=None, aug_transforms=None, multiscale=False,
-                 num_samples=None, mosaic=False, random_padding=False):
+                 num_samples=None, mosaic=False, random_padding=False,split_first = True):
         self.dataset_dir = dataset_dir
         assert mode in ['train', 'val', 'test'], 'Invalid mode: {}'.format(mode)
         self.mode = mode
@@ -60,7 +60,10 @@ class KittiDataset(Dataset):
             self.sample_id_list = self.remove_invalid_idx(self.image_idx_list)
 
         if num_samples is not None:
-            self.sample_id_list = self.sample_id_list[:num_samples]
+            if split_first:
+                self.sample_id_list = self.sample_id_list[:num_samples]
+            else:
+                self.sample_id_list = self.sample_id_list[num_samples:]
         self.num_samples = len(self.sample_id_list)
 
     def __getitem__(self, index):
