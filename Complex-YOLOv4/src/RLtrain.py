@@ -311,7 +311,7 @@ configure(args.cv_dir+'/log', flush_secs=5)
 
 # create an agent with RegNetX_200MF
 num_classes = num_actions
-BEV_WIDTH = img_size_cd * num_windows
+BEV_WIDTH = img_size_cd
 agent = RegNetX_200MF(num_classes,BEV_WIDTH)
 
 # ---- Load the pre-trained model ----------------------
