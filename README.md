@@ -9,6 +9,6 @@
 - Choose RegNetX-200MF parameters for RL
 - Dataloader for RL
 - RL training result(using old detectors):[here](https://drive.google.com/drive/folders/1KoteVPFJXtvmmRJVrNI6yzyM-apEZtdz?usp=sharing)
-
+- RL training result using new detectors: [here](https://1drv.ms/u/s!AveWDyBAPlGWg7BM4mo_b1jgSGPiRw?e=1LjQJT)
 ### 
 Get image id and patch id using the first column of coarse.txt and fine.txt
