@@ -356,3 +356,28 @@ def post_processing_v2(prediction, conf_thresh=0.95, nms_thresh=0.4):
             output[image_i] = torch.stack(keep_boxes)
 
     return output
+
+def get_patch_policies(probs,img_paths):
+    '''
+        get policies of different patches,
+        args:
+            probs(tensor:[batch_size,patch_number]):output of RL network
+            img_paths: from RL dataloader,length:batch_size
+        return:
+            shape:[total_patch_num,3], format of elements:[image_idx,patch_id,policy(0/1)]
+    '''
+    policy = probs.detach().clone()
+    policy[policy<0.5] = 0.0
+    policy[policy>=0.5] = 1.0
+
+    batch_size = policy.size(0)
+    patch_num = policy.size(1)
+    device = policy.device
+    res = torch.zeros(batch_size*patch_num,3).to(device)
+    for idx,img_path in enumerate(img_paths):
+        for patch_id in range(patch_num):
+            index = idx * patch_num + patch_id
+            res[index,0] = int(img_path[0].split('image_2/')[1].replace('.png', ''))
+            res[index,1] = patch_id
+            res[index,2] = policy[idx,patch_id]
+    return res
