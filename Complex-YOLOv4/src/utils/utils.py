@@ -98,8 +98,14 @@ def read_offsets(img_paths, num_actions):
             coarse_index = list(np.where(df_coarse[0] == id_patch)[0])
             fine_index = list(np.where(df_fine[0] == id_patch)[0])
             # iou value
-            patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
-            patch_fine_iou.append(np.mean(df_fine.iloc[fine_index][2]))
+            if coarse_index:
+                patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
+            else:
+                patch_coarse_iou.append(0.0)
+            if fine_index:
+                patch_fine_iou.append(np.mean(df_fine.iloc[fine_index][2]))
+            else:
+                patch_fine_iou.append(0.0)
             # score value
             patch_coarse_score.append(np.mean(df_coarse.iloc[coarse_index][3]))
             patch_fine_score.append(np.mean(df_fine.iloc[fine_index][3]))
