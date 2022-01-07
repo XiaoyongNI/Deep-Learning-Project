@@ -77,9 +77,9 @@ def read_offsets(img_paths, num_actions):
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
         img_id = int(img_path[0].split('image_2/')[1].replace('.png', ''))
-        df_val_id = pd.read_csv(base_dir_metric_fd+'val_id.txt', sep=" ", header=None)
-        df_coarse = pd.read_csv(base_dir_metric_fd+'coarse.txt', sep=" ", header=None)
-        df_fine = pd.read_csv(base_dir_metric_fd+'fine.txt', sep=" ", header=None)
+        df_val_id = pd.read_csv(base_dir_metric_fd+'val_id_16.txt', sep=" ", header=None)
+        df_coarse = pd.read_csv(base_dir_metric_fd+'coarse_16.txt', sep=" ", header=None)
+        df_fine = pd.read_csv(base_dir_metric_fd+'fine_16.txt', sep=" ", header=None)
         # find index of image
         select_indices = list(np.where(df_val_id[0] == img_id)[0])
         # empty lists
@@ -92,13 +92,17 @@ def read_offsets(img_paths, num_actions):
         select_indices = list(np.where(df_val_id[0] == img_id)[0])
         for id_patch in select_indices:
             # patch id of image
-            patch_ids.append(int(df_val_id.iloc[id_patch][1]))
+            patch_id = int(df_val_id.iloc[id_patch][1])
+            patch_ids.append(patch_id)
+            # corresponding predictions of coarse/fine detectors
+            coarse_index = list(np.where(df_coarse[0] == id_patch)[0])
+            fine_index = list(np.where(df_fine[0] == id_patch)[0])
             # iou value
-            patch_coarse_iou.append((df_coarse.iloc[id_patch][2]))
-            patch_fine_iou.append((df_fine.iloc[id_patch][2]))
+            patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
+            patch_fine_iou.append(np.mean(df_fine.iloc[fine_index][2]))
             # score value
-            patch_coarse_score.append((df_coarse.iloc[id_patch][3]))
-            patch_fine_score.append((df_fine.iloc[id_patch][3]))
+            patch_coarse_score.append(np.mean(df_coarse.iloc[coarse_index][3]))
+            patch_fine_score.append(np.mean(df_fine.iloc[fine_index][3]))
         # write offset_fd & offset_cd
         for i in range(0,len(patch_ids)):
             offset_fd[index,patch_ids[i]] = torch.from_numpy(np.array(patch_fine_iou[i]))
