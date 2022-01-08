@@ -312,8 +312,19 @@ configure(args.cv_dir+'/log', flush_secs=5)
 # create an agent with RegNetX_200MF
 num_classes = num_actions
 BEV_WIDTH = img_size_cd
-agent = RegNetX_200MF(num_classes,BEV_WIDTH)
-
+if False:
+    agent = RegNetX_200MF(num_classes,BEV_WIDTH)
+else:
+    agent = torchvision.models.resnet50(num_classes = num_classes)
+    if True:
+        pretrained = 'https://download.pytorch.org/models/resnet50-0676ba61.pth'
+        # pretrained = 'https://download.pytorch.org/models/resnet34-b627a593.pth'
+        pretrained_dict = torch.hub.load_state_dict_from_url(pretrained)
+        model_dict = agent.state_dict()
+        new_dict = {k: v for k, v in pretrained_dict.items() if 'fc' not in k}
+        model_dict.update(new_dict)
+        agent.load_state_dict(model_dict)
+    
 # ---- Load the pre-trained model ----------------------
 start_epoch = 0
 if args.load is not None:
