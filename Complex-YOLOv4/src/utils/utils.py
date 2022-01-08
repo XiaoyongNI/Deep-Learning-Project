@@ -77,10 +77,12 @@ def read_offsets(img_paths, num_actions):
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
         img_id = int(img_path[0].split('image_2/')[1].replace('.png', ''))
+        # read detector and ground truth
         df_val_id = pd.read_csv(base_dir_metric_fd+'val_id_16.txt', sep=" ", header=None)
-        df_coarse = pd.read_csv(base_dir_metric_fd+'coarse_16.txt', sep=" ", header=None)
-        df_fine = pd.read_csv(base_dir_metric_fd+'fine_16.txt', sep=" ", header=None)
-        # find index of image
+        df_coarse = pd.read_csv(base_dir_metric_fd+'coarse_detector_boxid.txt', sep=" ", header=None)
+        df_fine = pd.read_csv(base_dir_metric_fd+'fine_detector_boxid.txt', sep=" ", header=None)
+        df_gt = pd.read_csv(base_dir_metric_fd+'ground_truth_16.txt', sep=" ", header=None)
+        # find index(row number: patch id) of image
         select_indices = list(np.where(df_val_id[0] == img_id)[0])
         # empty lists
         patch_ids = []
@@ -95,20 +97,64 @@ def read_offsets(img_paths, num_actions):
             patch_id = int(df_val_id.iloc[id_patch][1])
             patch_ids.append(patch_id)
             # corresponding predictions of coarse/fine detectors
+            # row number
             coarse_index = list(np.where(df_coarse[0] == id_patch)[0])
             fine_index = list(np.where(df_fine[0] == id_patch)[0])
+            gt_index = list(np.where(df_gt[0] == id_patch)[0])
+            # ground truth conparation
+            # create two mini dataframe of a patch
+            df_coarse_patch = df_coarse.iloc[coarse_index]
+            df_fine_patch = df_fine.iloc[fine_index]
+            # iou value
+            iou_patch_coarse = 0
+            iou_patch_fine = 0
+            # all ground truth
+            for gt_id in gt_index:
+                ## bounding_box_id of ground truth
+                bounding_box_id = df_gt.iloc[gt_id][1]
+                ## class of ground truth
+                gt_class = df_gt.iloc[gt_id][2]
+                # row number in mini dataframe of a bounding box
+                coarse_patch_id = list(np.where(df_coarse_patch[5] == bounding_box_id)[0])
+                fine_patch_id = list(np.where(df_fine_patch[5] == bounding_box_id)[0])
+                # coarse
+                if coarse_patch_id:
+                    # mini data frame corresponding to bounding box
+                    df_coarse_bounding_box = df_coarse_patch.iloc[coarse_patch_id]
+                    # row number with max iou value
+                    coarse_bounding_box_id = df_coarse_bounding_box.iloc[:,2].argmax()
+                    # add iou value
+                    iou_patch_coarse += df_coarse_bounding_box.iloc[coarse_bounding_box_id][2]
+                else:
+                    iou_patch_coarse += 0
+                # fine
+                if fine_patch_id:
+                    # mini data frame corresponding to bounding box
+                    df_fine_bounding_box = df_fine_patch.iloc[fine_patch_id]
+                    # row number with max iou value
+                    fine_bounding_box_id = df_fine_bounding_box.iloc[:,2].argmax()
+                    # add iou value
+                    iou_patch_fine += df_fine_bounding_box.iloc[fine_bounding_box_id][2]
+                else:
+                    iou_patch_fine += 0
+            # iou value to bounding box number
+            iou_patch_coarse = iou_patch_coarse / len(gt_index)
+            iou_patch_fine = iou_patch_fine / len(gt_index)
+            #print(iou_patch_coarse)
             # iou value
             if coarse_index:
-                patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
+                #patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
+                patch_coarse_iou.append(iou_patch_coarse)
             else:
                 patch_coarse_iou.append(0.0)
             if fine_index:
-                patch_fine_iou.append(np.mean(df_fine.iloc[fine_index][2]))
+                #patch_fine_iou.append(np.mean(df_fine.iloc[fine_index][2]))
+                patch_fine_iou.append(iou_patch_fine)
             else:
                 patch_fine_iou.append(0.0)
-            # score value
-            patch_coarse_score.append(np.mean(df_coarse.iloc[coarse_index][3]))
-            patch_fine_score.append(np.mean(df_fine.iloc[fine_index][3]))
+            # # score value
+            # patch_coarse_score.append(np.mean(df_coarse.iloc[coarse_index][3]))
+            # patch_fine_score.append(np.mean(df_fine.iloc[fine_index][3]))
         # write offset_fd & offset_cd
         for i in range(0,len(patch_ids)):
             offset_fd[index,patch_ids[i]] = torch.from_numpy(np.array(patch_fine_iou[i]))
