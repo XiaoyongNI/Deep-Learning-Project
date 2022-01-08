@@ -193,7 +193,8 @@ def compute_reward(offset_fd, offset_cd, policy, beta, sigma):
     # successfully categorizes the image
     offset_cd += beta
     # R_acc
-    reward_patch_diff = (offset_fd - offset_cd)*policy + -1*((offset_fd - offset_cd)*(1-policy))
+    # reward_patch_diff = (offset_fd - offset_cd)*policy + -1*((offset_fd - offset_cd)*(1-policy))
+    reward_patch_diff = (offset_fd - offset_cd)*policy 
     # R_cost
     reward_patch_acqcost = (policy.size(1) - policy.sum(dim=1)) / policy.size(1)
     # R_c
