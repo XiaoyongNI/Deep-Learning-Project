@@ -4,6 +4,7 @@ import time
 import numpy as np
 #import csv
 import random
+import torchvision
 from easydict import EasyDict as edict
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -41,7 +42,7 @@ parser.add_argument('--num_workers', type=int, default=8, help='Number of Worker
 parser.add_argument('--test_epoch', type=int, default=10, help='At every N epoch test the network')
 parser.add_argument('--parallel', action='store_true', default=False, help='use multiple GPUs for training')
 parser.add_argument('--alpha', type=float, default=0.8, help='probability bounding factor')
-parser.add_argument('--beta', type=float, default=0.1, help='Coarse detector increment')
+parser.add_argument('--beta', type=float, default=0.3, help='Coarse detector increment')
 parser.add_argument('--sigma', type=float, default=0.5, help='cost for patch use')
 args = parser.parse_args()
 
@@ -194,7 +195,7 @@ parser.add_argument('--batch_size', type=int, default=16,
 configs = edict(vars(parser.parse_args()))
 configs.distributed = False  # For testing
 configs.pin_memory = False
-configs.dataset_dir = os.path.join('../', 'dataset', 'kitti')
+configs.dataset_dir = os.path.join("../", "dataset","kitti")
 
 # load training dataset
 configs_lr = deepcopy(configs)
@@ -312,7 +313,7 @@ configure(args.cv_dir+'/log', flush_secs=5)
 # create an agent with RegNetX_200MF
 num_classes = num_actions
 BEV_WIDTH = img_size_cd
-if False:
+if True:
     agent = RegNetX_200MF(num_classes,BEV_WIDTH)
 else:
     agent = torchvision.models.resnet50(num_classes = num_classes)
@@ -346,7 +347,8 @@ optimizer = optim.Adam(agent.parameters(), lr=args.lr)
 
 
 # Start training and testing
-for epoch in range(start_epoch, start_epoch+args.max_epochs+1):
-    train(epoch,agent)
-    #if epoch % args.test_epoch == 0:
-    #    test(epoch)
+if __name__ == '__main__':  
+    for epoch in range(start_epoch, start_epoch+args.max_epochs+1):
+        train(epoch,agent)
+        #if epoch % args.test_epoch == 0:
+        #    test(epoch)

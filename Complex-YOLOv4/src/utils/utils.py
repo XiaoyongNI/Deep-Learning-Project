@@ -76,7 +76,7 @@ def read_offsets(img_paths, num_actions):
         offset_cd = torch.zeros((len(img_paths), num_actions))
     for index, img_path in enumerate(img_paths):
         # get img_id from img_path, eg img_id = '002096.npy'
-        img_id = int(img_path[0].split('image_2/')[1].replace('.png', ''))
+        img_id = int(img_path[0].split("image_2/")[1].replace('.png', ''))
         # read detector and ground truth
         df_val_id = pd.read_csv(base_dir_metric_fd+'val_id_16.txt', sep=" ", header=None)
         df_coarse = pd.read_csv(base_dir_metric_fd+'coarse_detector_boxid.txt', sep=" ", header=None)
@@ -87,9 +87,9 @@ def read_offsets(img_paths, num_actions):
         # empty lists
         patch_ids = []
         patch_coarse_iou = []
-        patch_coarse_score = []
         patch_fine_iou = []
-        patch_fine_score = []
+        # patch_coarse_score = []        
+        # patch_fine_score = []
         # line numbers
         select_indices = list(np.where(df_val_id[0] == img_id)[0])
         for id_patch in select_indices:
@@ -138,9 +138,8 @@ def read_offsets(img_paths, num_actions):
                 else:
                     iou_patch_fine += 0
             # iou value to bounding box number
-            iou_patch_coarse = iou_patch_coarse / len(gt_index)
-            iou_patch_fine = iou_patch_fine / len(gt_index)
-            #print(iou_patch_coarse)
+            iou_patch_coarse = iou_patch_coarse * len(gt_index)
+            iou_patch_fine = iou_patch_fine * len(gt_index)
             # iou value
             if coarse_index:
                 #patch_coarse_iou.append(np.mean(df_coarse.iloc[coarse_index][2]))
@@ -193,8 +192,7 @@ def compute_reward(offset_fd, offset_cd, policy, beta, sigma):
     # successfully categorizes the image
     offset_cd += beta
     # R_acc
-    # reward_patch_diff = (offset_fd - offset_cd)*policy + -1*((offset_fd - offset_cd)*(1-policy))
-    reward_patch_diff = (offset_fd - offset_cd)*policy 
+    reward_patch_diff = (offset_fd - offset_cd)*policy + -1*((offset_fd - offset_cd)*(1-policy))
     # R_cost
     reward_patch_acqcost = (policy.size(1) - policy.sum(dim=1)) / policy.size(1)
     # R_c
