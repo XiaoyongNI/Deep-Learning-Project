@@ -4,7 +4,6 @@ import time
 import numpy as np
 #import csv
 import random
-import torchvision
 from easydict import EasyDict as edict
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -19,6 +18,7 @@ from torch.autograd import Variable
 #import torch.multiprocessing as mp
 import torch.utils.data.distributed
 from torch.distributions import Bernoulli
+import torchvision
 from tqdm import tqdm
 from copy import deepcopy
 sys.path.append('./')
@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(description='PolicyNetworkTraining')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--data_dir', default='data/', help='data directory')
 parser.add_argument('--load', default=None, help='checkpoint to load agent from')
-parser.add_argument('--cv_dir', default='../RLsave/old', help='checkpoint directory (models and logs are saved here)')
+parser.add_argument('--cv_dir', default='../RLsave/test', help='checkpoint directory (models and logs are saved here)')
 parser.add_argument('--save_intervals',default = 10,help='At every N epoch save the checkpoint')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--img_size', type=int, default=448, help='PN Image Size')
@@ -42,7 +42,7 @@ parser.add_argument('--num_workers', type=int, default=8, help='Number of Worker
 parser.add_argument('--test_epoch', type=int, default=10, help='At every N epoch test the network')
 parser.add_argument('--parallel', action='store_true', default=False, help='use multiple GPUs for training')
 parser.add_argument('--alpha', type=float, default=0.8, help='probability bounding factor')
-parser.add_argument('--beta', type=float, default=0.3, help='Coarse detector increment')
+parser.add_argument('--beta', type=float, default=0.1, help='Coarse detector increment')
 parser.add_argument('--sigma', type=float, default=0.5, help='cost for patch use')
 args = parser.parse_args()
 
@@ -186,7 +186,7 @@ def RegNetY_400MF(num_classes,BEV_WIDTH):
 parser = argparse.ArgumentParser(description='Complexer YOLO Implementation')
 # parser.add_argument('--img_size', type=int, default=64,
 #                     help='the size of input image')
-parser.add_argument('--num_samples', type=int, default=None,
+parser.add_argument('--num_samples', type=int, default=1201,
                     help='Take a subset of the dataset to run and debug')
 parser.add_argument('--num_workers', type=int, default=1,
                     help='Number of threads for loading data')
@@ -195,7 +195,7 @@ parser.add_argument('--batch_size', type=int, default=16,
 configs = edict(vars(parser.parse_args()))
 configs.distributed = False  # For testing
 configs.pin_memory = False
-configs.dataset_dir = os.path.join("../", "dataset","kitti")
+configs.dataset_dir = os.path.join('../', 'dataset', 'kitti')
 
 # load training dataset
 configs_lr = deepcopy(configs)
@@ -225,6 +225,7 @@ with open('../dataset/kitti/val_id.txt', newline='') as csvfile:
 def train(epoch, agent):
     agent.train()
     rewards, rewards_baseline, policies = [], [], []
+    losses = []
 
     for batch_idx, (img_paths, img_lr, img_hr, targets) in enumerate(tqdm(trainloader)):
         #patch_lr,patch_hr,patch_target = create_patch(img_lr, img_hr, target)
@@ -234,15 +235,20 @@ def train(epoch, agent):
 
         inputs = img_lr
         inputs = Variable(inputs)
+        patches_lr,_,_ = create_patch(img_lr,img_hr,targets)
         if not args.parallel:
             if cudaFLAG:
                 inputs = inputs.cuda()
+                patches_lr = patches_lr.cuda()
 
         # Actions by the Agent's output
-        probs = F.sigmoid(agent.forward(inputs))
+        if not patch_flag:
+            probs = F.sigmoid(agent.forward(inputs))
+        else:
+            probs = F.sigmoid(agent.forward(patches_lr))
+
         alpha_hp = np.clip(args.alpha + epoch * 0.001, 0.6, 0.95)
         probs = probs*alpha_hp + (1-alpha_hp) * (1-probs)
-
         # Sample the policies from the Bernoulli distribution characterized by agent
         distr = Bernoulli(probs)
         policy_sample = distr.sample()
@@ -258,6 +264,9 @@ def train(epoch, agent):
         # use pre calculated metric mARs
         # img_paths are the paths to images in a batch
         offset_fd, offset_cd = utils.read_offsets(img_paths, num_actions)
+        if patch_flag:
+            offset_fd = offset_fd.view_as(probs).contiguous()
+            offset_cd = offset_cd.view_as(probs).contiguous()
 
         # Find the reward for baseline and sampled policy
         reward_map = utils.compute_reward(offset_fd, offset_cd, policy_map.data, args.beta, args.sigma)
@@ -282,6 +291,7 @@ def train(epoch, agent):
         loss.backward()
         optimizer.step()
 
+        losses.append(loss)
         rewards.append(reward_sample.cpu())
         rewards_baseline.append(reward_map.cpu())
         policies.append(policy_sample.data.cpu())
@@ -289,21 +299,22 @@ def train(epoch, agent):
     reward, sparsity, variance, policy_set = utils.performance_stats(policies, rewards)
 
     print('Train: %d | Rw: %.2E | S: %.3f | V: %.3f | #: %d' % (epoch, reward, sparsity, variance, len(policy_set)))
-
+    print('Losses:%.3f' %(sum(losses)/len(losses)))
     log_value('train_reward', reward, epoch)
     log_value('train_sparsity', sparsity, epoch)
     log_value('train_variance', variance, epoch)
     log_value('train_baseline_reward', torch.cat(rewards_baseline, 0).mean(), epoch)
     log_value('train_unique_policies', len(policy_set), epoch)
+    log_value('train_losses',sum(losses)/len(losses),epoch)
 
-    if epoch % args.save_intervals==0 and epoch != 0:
+    if epoch % args.save_intervals == 0 and epoch != 0:
         agent_state_dict = agent.module.state_dict() if args.parallel else agent.state_dict()
         state = {
             'agent': agent_state_dict,
             'epoch': epoch,
             'reward': reward,
         }
-        torch.save(state, args.cv_dir + '/ckpt_E_%d_R_%.2E' % (epoch, reward))
+        torch.save(state, args.cv_dir + '/ckpt_E_%d_R_%.2E.pth' % (epoch, reward))
 
 # Save the args to the checkpoint directory
 if not os.path.exists(args.cv_dir):
@@ -311,9 +322,11 @@ if not os.path.exists(args.cv_dir):
 configure(args.cv_dir+'/log', flush_secs=5)
 
 # create an agent with RegNetX_200MF
-num_classes = num_actions
-BEV_WIDTH = img_size_cd
-if True:
+patch_flag = True
+num_classes = num_actions if not patch_flag else 1
+BEV_WIDTH = img_size_cd if not patch_flag else 64
+
+if False:
     agent = RegNetX_200MF(num_classes,BEV_WIDTH)
 else:
     agent = torchvision.models.resnet50(num_classes = num_classes)
@@ -325,7 +338,7 @@ else:
         new_dict = {k: v for k, v in pretrained_dict.items() if 'fc' not in k}
         model_dict.update(new_dict)
         agent.load_state_dict(model_dict)
-    
+
 # ---- Load the pre-trained model ----------------------
 start_epoch = 0
 if args.load is not None:
@@ -346,8 +359,8 @@ if cudaFLAG:
 optimizer = optim.Adam(agent.parameters(), lr=args.lr)
 
 
-# Start training and testing
-if __name__ == '__main__':  
+if __name__ == '__main__':
+    # Start training and testing
     for epoch in range(start_epoch, start_epoch+args.max_epochs+1):
         train(epoch,agent)
         #if epoch % args.test_epoch == 0:
