@@ -357,6 +357,35 @@ def post_processing_v2(prediction, conf_thresh=0.95, nms_thresh=0.4):
 
     return output
 
+def ensemble(probs,method,T = 0.5):
+    '''
+    args:
+        probs([batch_size,patch_number,model_num])
+    '''
+    assert method in ['majority_voting','boltzmann_multiplication']
+    model_num = probs.size(2)
+    batch_size = probs.size(0)
+    patch_num = probs.size(1)
+    device = probs.device
+    policies = torch.zeros(batch_size,patch_num).to(device)
+
+    if method == 'majority_voting':
+        #probs = torch.exp(probs/T) / (torch.exp(probs/T) + torch.exp((1-probs)/T))
+        distr = torch.distributions.Bernoulli(probs)
+        policy_sample = distr.sample()
+        counts = torch.count_nonzero(policy_sample,dim = -1)
+        policies[counts>model_num/2] = 1.
+    elif method == 'boltzmann_multiplication':
+        # probs = torch.pow(probs,1/T) / (torch.pow(probs,1/T) + torch.pow((1-probs),1/T))
+        probs_1 = torch.prod(probs,dim=2)
+        probs_0 = torch.prod(1.-probs,dim=2)
+        probs = probs_1 / (probs_0 + probs_1)
+        distr = torch.distributions.Bernoulli(probs)
+        policies = distr.sample()
+    return policies
+
+
+
 def get_patch_policies(probs,img_paths):
     '''
         get policies of different patches,
@@ -366,9 +395,7 @@ def get_patch_policies(probs,img_paths):
         return:
             shape:[total_patch_num,3], format of elements:[image_idx,patch_id,policy(0/1)]
     '''
-    policy = probs.detach().clone()
-    policy[policy<0.5] = 0.0
-    policy[policy>=0.5] = 1.0
+    policy = probs.detach()
 
     batch_size = policy.size(0)
     patch_num = policy.size(1)

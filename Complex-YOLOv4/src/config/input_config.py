@@ -24,28 +24,32 @@ patch_num = 4  # (1d)
 LR_IMAGE_CFG = edict({
     "PATCH_NUM": 1,
     "PATCH_SIZE": img_size,
-    "BEV_WIDTH": int(img_size / downsample), "BEV_HEIGHT": int(img_size / downsample)
+    "BEV_WIDTH": int(img_size / downsample), "BEV_HEIGHT": int(img_size / downsample),
+    "color": [199, 76, 129]
 })
 complete_info(LR_IMAGE_CFG)
 
 HR_IMAGE_CFG = edict({
     "PATCH_NUM": 1,
     "PATCH_SIZE": img_size,
-    "BEV_WIDTH": int(img_size), "BEV_HEIGHT": int(img_size)
+    "BEV_WIDTH": int(img_size), "BEV_HEIGHT": int(img_size),
+    "color": [207, 150, 81]
 })
 complete_info(HR_IMAGE_CFG)
 
 LR_PATCH_CFG = edict({
     "PATCH_NUM": patch_num,
     "PATCH_SIZE": patch_size,
-    "BEV_WIDTH": int(patch_size / downsample), "BEV_HEIGHT": int(patch_size / downsample)
+    "BEV_WIDTH": int(patch_size / downsample), "BEV_HEIGHT": int(patch_size / downsample),
+    "color": [199, 76, 129] # purple
 })
 complete_info(LR_PATCH_CFG)
 
 HR_PATCH_CFG = edict({
     "PATCH_NUM": patch_num,
     "PATCH_SIZE": patch_size,
-    "BEV_WIDTH": int(patch_size), "BEV_HEIGHT": int(patch_size)
+    "BEV_WIDTH": int(patch_size), "BEV_HEIGHT": int(patch_size),
+    "color": [207, 150, 81] # blue
 })
 complete_info(HR_PATCH_CFG)
 

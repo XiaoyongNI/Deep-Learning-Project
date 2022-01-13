@@ -163,7 +163,7 @@ def drawRotatedBox(img, x, y, w, l, yaw, color):
     corners_int = bev_corners.reshape(-1, 1, 2).astype(int)
     cv2.polylines(img, [corners_int], True, color, 2)
     corners_int = bev_corners.reshape(-1, 2)
-    cv2.line(img, (corners_int[0, 0], corners_int[0, 1]), (corners_int[3, 0], corners_int[3, 1]), (255, 255, 0), 2)
+    cv2.line(img, (corners_int[0, 0], corners_int[0, 1]), (corners_int[3, 0], corners_int[3, 1]), (255, 255, 0), 1)
 
 
 def draw_box_in_bev(rgb_map, target, cfg):
@@ -175,4 +175,4 @@ def draw_box_in_bev(rgb_map, target, cfg):
         w = target[j][3] * cfg.BEV_WIDTH
         l = target[j][4] * cfg.BEV_HEIGHT
         yaw = np.arctan2(target[j][5], target[j][6])
-        drawRotatedBox(rgb_map, x, y, w, l, yaw, cnf.colors[cls_id])
+        drawRotatedBox(rgb_map, x, y, w, l, yaw, cfg.color)

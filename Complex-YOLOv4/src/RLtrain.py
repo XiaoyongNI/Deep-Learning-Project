@@ -29,21 +29,22 @@ from constants import num_windows, num_actions, img_size_fd, img_size_cd
 
 # config for RL agent
 parser = argparse.ArgumentParser(description='PolicyNetworkTraining')
-parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
+parser.add_argument('--lr', type=float, default=1e-5, help='learning rate')
 parser.add_argument('--data_dir', default='data/', help='data directory')
 parser.add_argument('--load', default=None, help='checkpoint to load agent from')
-parser.add_argument('--cv_dir', default='../RLsave/test', help='checkpoint directory (models and logs are saved here)')
+parser.add_argument('--cv_dir', default='../RLsave/regnet1.6gf', help='checkpoint directory (models and logs are saved here)')
 parser.add_argument('--save_intervals',default = 10,help='At every N epoch save the checkpoint')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--img_size', type=int, default=448, help='PN Image Size')
 parser.add_argument('--epoch_step', type=int, default=10000, help='epochs after which lr is decayed')
-parser.add_argument('--max_epochs', type=int, default=200, help='total epochs to run')
+parser.add_argument('--max_epochs', type=int, default=50, help='total epochs to run')
 parser.add_argument('--num_workers', type=int, default=8, help='Number of Workers')
 parser.add_argument('--test_epoch', type=int, default=10, help='At every N epoch test the network')
 parser.add_argument('--parallel', action='store_true', default=False, help='use multiple GPUs for training')
 parser.add_argument('--alpha', type=float, default=0.8, help='probability bounding factor')
-parser.add_argument('--beta', type=float, default=0.1, help='Coarse detector increment')
-parser.add_argument('--sigma', type=float, default=0.5, help='cost for patch use')
+parser.add_argument('--beta', type=float, default=0.05, help='Coarse detector increment')
+parser.add_argument('--sigma', type=float, default=0.3, help='cost for patch use')
+parser.add_argument('--model_type',type = str,default='regnet1.6gf',help='model type')
 args = parser.parse_args()
 
 
@@ -235,6 +236,7 @@ def train(epoch, agent):
 
         inputs = img_lr
         inputs = Variable(inputs)
+        start = time.time()
         patches_lr,_,_ = create_patch(img_lr,img_hr,targets)
         if not args.parallel:
             if cudaFLAG:
@@ -246,7 +248,8 @@ def train(epoch, agent):
             probs = F.sigmoid(agent.forward(inputs))
         else:
             probs = F.sigmoid(agent.forward(patches_lr))
-
+        end = time.time()
+        print(end-start)
         alpha_hp = np.clip(args.alpha + epoch * 0.001, 0.6, 0.95)
         probs = probs*alpha_hp + (1-alpha_hp) * (1-probs)
         # Sample the policies from the Bernoulli distribution characterized by agent
@@ -314,7 +317,7 @@ def train(epoch, agent):
             'epoch': epoch,
             'reward': reward,
         }
-        torch.save(state, args.cv_dir + '/ckpt_E_%d_R_%.2E.pth' % (epoch, reward))
+        torch.save(state, args.cv_dir + '/ckpt_E_%d.pth' % epoch)
 
 # Save the args to the checkpoint directory
 if not os.path.exists(args.cv_dir):
@@ -326,18 +329,26 @@ patch_flag = True
 num_classes = num_actions if not patch_flag else 1
 BEV_WIDTH = img_size_cd if not patch_flag else 64
 
-if False:
+if args.model_type == 'regnet200mf':
     agent = RegNetX_200MF(num_classes,BEV_WIDTH)
-else:
-    agent = torchvision.models.resnet50(num_classes = num_classes)
-    if True:
+elif 'resnet' in args.model_type:
+    if args.model_type =='resnet18':
+        agent = torchvision.models.resnet18(num_classes = num_classes)
+        pretrained = 'https://download.pytorch.org/models/resnet18-f37072fd.pth'
+    elif args.model_type =='resnet34':
+        agent = torchvision.models.resnet34(num_classes = num_classes)
+        pretrained = 'https://download.pytorch.org/models/resnet34-b627a593.pth'
+    if args.model_type =='resnet50':
+        agent = torchvision.models.resnet50(num_classes = num_classes)
         pretrained = 'https://download.pytorch.org/models/resnet50-0676ba61.pth'
-        # pretrained = 'https://download.pytorch.org/models/resnet34-b627a593.pth'
+    if True:
         pretrained_dict = torch.hub.load_state_dict_from_url(pretrained)
         model_dict = agent.state_dict()
         new_dict = {k: v for k, v in pretrained_dict.items() if 'fc' not in k}
         model_dict.update(new_dict)
         agent.load_state_dict(model_dict)
+elif args.model_type == 'regnet1.6gf':
+    agent = torchvision.models.regnet_x_1_6gf(num_classes=num_classes, stem_width=BEV_WIDTH)
 
 # ---- Load the pre-trained model ----------------------
 start_epoch = 0

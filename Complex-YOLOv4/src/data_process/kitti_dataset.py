@@ -53,17 +53,24 @@ class KittiDataset(Dataset):
         split_txt_path = os.path.join(self.dataset_dir, 'ImageSets', '{}.txt'.format(mode))
         self.image_idx_list = [x.strip() for x in open(split_txt_path).readlines()]
 
+        if num_samples is not None and self.cfg.PATCH_NUM !=1:
+            if split_first:
+                self.image_idx_list = self.image_idx_list[:num_samples]
+            else:
+                self.image_idx_list = self.image_idx_list[num_samples:]
+
         if self.is_test:
             self.sample_id_list = [(int(sample_id), patch_index) for sample_id in self.image_idx_list for patch_index in
                                    range(int(self.cfg.PATCH_NUM)**2)]
         else:
             self.sample_id_list = self.remove_invalid_idx(self.image_idx_list)
 
-        if num_samples is not None:
+        if num_samples is not None and self.cfg.PATCH_NUM ==1:
             if split_first:
-                self.sample_id_list = self.sample_id_list[:num_samples]
+                self.sample_idx_list = self.sample_idx_list[:num_samples]
             else:
-                self.sample_id_list = self.sample_id_list[num_samples:]
+                self.sample_idx_list = self.sample_idx_list[num_samples:]
+
         self.num_samples = len(self.sample_id_list)
 
     def __getitem__(self, index):

@@ -148,7 +148,7 @@ def get_lidar_in_image_fov(pc_velo, calib, xmin, ymin, xmax, ymax,
         return imgfov_pc_velo
 
 
-def show_image_with_boxes(img, objects, calib, show3d=False):
+def show_image_with_boxes(img, objects, calib, show3d=False,color=[255,0,0]):
     ''' Show image with 2D bounding boxes '''
 
     img2 = np.copy(img)  # for 3d bbox
@@ -158,7 +158,7 @@ def show_image_with_boxes(img, objects, calib, show3d=False):
         #    (int(obj.xmax),int(obj.ymax)), (0,255,0), 2)
         box3d_pts_2d, box3d_pts_3d = kitti_data_utils.compute_box_3d(obj, calib.P)
         if box3d_pts_2d is not None:
-            img2 = kitti_data_utils.draw_projected_box3d(img2, box3d_pts_2d, cnf.colors[obj.cls_id])
+            img2 = kitti_data_utils.draw_projected_box3d(img2, box3d_pts_2d, color)
     if show3d:
         cv2.imshow("img", img2)
     return img2
