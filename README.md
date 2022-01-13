@@ -64,7 +64,7 @@ We provide three pretrained checkpoints of RegNet-200mf: [here](https://drive.go
 ### 1.6 Evaluate RL policy
 Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies. 
 In ```code/RLsave/```, we provide our policy text file ```regnet_policies_3_bm.txt```. You can use this file to try the following steps.
-Then refer to policy_from_txt.ipynb to check the generated policies.
+Then refer to ```policy_from_txt.ipynb``` to check the generated policies.
 Our results are shown below:
 
 <img src="./code/docs/metric_table.png" alt="metric" width="500"/>
