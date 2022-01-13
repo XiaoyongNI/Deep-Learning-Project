@@ -62,7 +62,10 @@ python RLtrain.py --cv_dir <PATH> --model_type <MODEL> --batch_size <N> --lr <LR
 We provide three pretrained checkpoints of RegNet-200mf: [here](https://drive.google.com/file/d/1bifO6v1WXygPdrmP6mhhGyLoglhNysHD/view?usp=sharing). Unzip the file and put the folder in ```code/RLsave/```, then you can directly run the following evaluation code.
 
 ### 1.6 Evaluate RL policy
-Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies. 
+Generate the text file that stores policies
+
+```python RLpolicies.py --save_txt <file_name>```
+
 In ```code/RLsave/```, we provide our policy text file ```regnet_policies_3_bm.txt```. You can use this file to try the following steps.
 Then refer to ```policy_from_txt.ipynb``` to check the generated policies.
 Our results are shown below:
