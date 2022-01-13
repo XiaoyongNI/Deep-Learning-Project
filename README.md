@@ -152,4 +152,4 @@ ${ROOT}
 ```
 
 ##  3. Acknowledgements
-The authors thank Prof. Fernando Perez-Cruz and Dr. Aurelien Lucchifor for their insightful lectures and this project opportunity. The authors also thank all the TAs for their great tutorial and their constructive comments on this projec
+The authors thank Prof. Fernando Perez-Cruz and Dr. Aurelien Lucchifor for their insightful lectures and this project opportunity. The authors also thank all the TAs for their great tutorial and their constructive comments on this project.
