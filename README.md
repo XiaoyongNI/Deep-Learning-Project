@@ -33,7 +33,7 @@ You can also customize your arguments in train.sh. Run ```python train.py -h``` 
 We provide two pretrained models: [coarse](https://1drv.ms/u/s!AveWDyBAPlGWg7BeG5IYBgy5Mi7XQg?e=jTsimx) and [fine](https://1drv.ms/u/s!AveWDyBAPlGWg7Bde_9LS4xl3ynmDw?e=yoaPe1). You can resume training or evaluate the checkpoints.
 
 Our training curve: 
-![](./Complex-YOLOv4/docs/d_train.png)
+![](./code/docs/d_train.png)
 
 Evaluate the detectors
 ```
@@ -61,7 +61,7 @@ We provide three pretrained checkpoints of RegNet-200mf: [here](https://drive.go
 Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies.
 Then refer to policy_from_txt.ipynb to check the generated policies.
 Our results are shown below:
-![Metric table](./Complex-YOLOv4/docs/metric_table.png)
+![Metric table](./code/docs/metric_table.png)
 
 ### 1.7 Visualize predictions and save policies
 Use the policy file generated in Section **1.6** and detector checkpoints saved in **1.3**, you can visualize the predictions and save the visualization along with the policy results:
@@ -69,7 +69,7 @@ Use the policy file generated in Section **1.6** and detector checkpoints saved 
 python test_two_models.py --show_image --policy_file <file_path> --load_coarse <path> --load_fine <path> --save_test_output
 ```
 One sample is shown as below:
-![Visualization_sample](./Complex-YOLOv4/docs/007273_6_1.0.png)
+![Visualization_sample](./code/docs/007273_6_1.0.png)
 
 ## 2. Folder structure
 
