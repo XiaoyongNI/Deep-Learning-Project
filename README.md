@@ -34,7 +34,7 @@ We provide two pretrained models: [coarse](https://1drv.ms/u/s!AveWDyBAPlGWg7BeG
 
 Our training curve: 
 <!--![](./code/docs/d_train.png)-->
-<img src="./code/docs/d_train.png" alt="trainingcurve" width="50"/>
+<img src="./code/docs/d_train.png" alt="trainingcurve" width="150"/>
 Evaluate the detectors
 ```
 python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --detector_type <fine or coarse>
@@ -61,7 +61,7 @@ We provide three pretrained checkpoints of RegNet-200mf: [here](https://drive.go
 Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies.
 Then refer to policy_from_txt.ipynb to check the generated policies.
 Our results are shown below:
-<img src="./code/docs/metric_table.png" alt="metric" width="50"/>
+<img src="./code/docs/metric_table.png" alt="metric" width="150"/>
 <!--![Metric table](./code/docs/metric_table.png)-->
 
 ### 1.7 Visualize predictions and save policies
@@ -70,7 +70,7 @@ Use the policy file generated in Section **1.6** and detector checkpoints saved 
 python test_two_models.py --show_image --policy_file <file_path> --load_coarse <path> --load_fine <path> --save_test_output
 ```
 One sample is shown as below:
-<img src="./code/docs/007273_6_1.0.png" alt="vsample" width="50"/>
+<img src="./code/docs/007273_6_1.0.png" alt="vsample" width="150"/>
 <!--![Visualization_sample](./code/docs/007273_6_1.0.png)-->
 
 ## 2. Folder structure
