@@ -48,6 +48,9 @@ python evaluate_for_RL.py --pretrained_path <PATH> --detector_type <coarse or fi
 The generated idx file would contain the image name and patch index. For coarse and fine detector, the generated txt files are listed as:
   - batch_id, detection_idx, IOU, detection score, class, box_id
  where the box_id corresponds to the ground truth id in the ground truth file. You can find out how to index those values in policy_from_txt.ipynb.
+ 
+In ```code/dataset/kitti/```, we provide some text files we generated for future training.
+
 ### 1.5 Train policy network
 You can run ```sh RLtrain.sh``` to reproduce our setup, under which the network backbone is RegNetX-200mf.
 To try different network architecture (options:resnet18, resnet34, resnet50, regnet1.6gf) and training parameters, you can also run:
@@ -58,7 +61,8 @@ python RLtrain.py --cv_dir <PATH> --model_type <MODEL> --batch_size <N> --lr <LR
 We provide three pretrained checkpoints of RegNet-200mf: [here](https://drive.google.com/file/d/1bifO6v1WXygPdrmP6mhhGyLoglhNysHD/view?usp=sharing). Unzip the file and put the folder in ```code/RLsave```, then you can directly run the following evaluation code.
 
 ### 1.6 Evaluate RL policy
-Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies.
+Run ```python RLpolicies.py --save_txt <file_name>``` to generate the text file that stores policies. 
+In ```code/RLsave```, we provide our policy text file ```regnet_policies_3_bm.txt```. You can use this file to try the following steps.
 Then refer to policy_from_txt.ipynb to check the generated policies.
 Our results are shown below:
 
@@ -80,7 +84,10 @@ One sample is shown as below:
 ```
 ${ROOT}
 └── checkpoints/    
-    └── (your checkpoints folder)/
+    └── (your detector checkpoints folder)/
+└── RLsave/   
+    ├── regnet_policies_3_bm.txt
+    └── (your RL checkpoints folder)/
 └── dataset/    
     └── kitti/
         ├──ImageSets/
