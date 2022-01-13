@@ -36,6 +36,7 @@ Our training curve:
 <!--![](./code/docs/d_train.png)-->
 <img src="./code/docs/d_train.png" alt="trainingcurve" width="500"/>
 Evaluate the detectors
+
 ```
 python evaluate.py --gpu_idx 0 --pretrained_path <PATH> --detector_type <fine or coarse>
 ```
