@@ -67,9 +67,9 @@ class KittiDataset(Dataset):
 
         if num_samples is not None and self.cfg.PATCH_NUM ==1:
             if split_first:
-                self.sample_idx_list = self.sample_idx_list[:num_samples]
+                self.sample_id_list = self.sample_id_list[:num_samples]
             else:
-                self.sample_idx_list = self.sample_idx_list[num_samples:]
+                self.sample_id_list = self.sample_id_list[num_samples:]
 
         self.num_samples = len(self.sample_id_list)
 
