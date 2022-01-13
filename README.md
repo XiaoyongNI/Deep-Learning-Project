@@ -1,6 +1,10 @@
 # Deep-Learning-Project
 
-## Current plan
+## Instruction how to use the repo
+
+### Dataset preparation 
+Please refer to the readme file in Complex-yolo directory to prepare the dataset.
+### Detector training
 
 - RL modification from python2 to python3
 - prepare yolo and the heatmap(potentially useful for RL input)
