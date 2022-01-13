@@ -1,14 +1,14 @@
 # DL-Project: Boosting the Efficiency of 3D Object Detection through Ensemble Reinforcement Learning
 
 ## 1.Instruction on how to run the code
-### 1.1. Build the runnning environment
+### 1.1 Build the runnning environment
 ```shell script
 cd code
 pip install -U -r requirements.txt
 ```
 You need to install two additional library: [`mayavi`](https://docs.enthought.com/mayavi/mayavi/installation.html) and [`shapely`](https://shapely.readthedocs.io/en/latest/project.html#installing-shapely) 
 libraries. Please refer to the installation instructions from their official websites.
-### 1.2. Prepare the data
+### 1.2 Prepare the data
 Download the 3D KITTI detection dataset from [here](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d).
 
 The downloaded data includes:
