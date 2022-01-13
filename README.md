@@ -70,6 +70,7 @@ Use the policy file generated in Section **1.6** and detector checkpoints saved 
 python test_two_models.py --show_image --policy_file <file_path> --load_coarse <path> --load_fine <path> --save_test_output
 ```
 One sample is shown as below:
+
 <img src="./code/docs/007273_6_1.0.png" alt="vsample" width="500"/>
 <!--![Visualization_sample](./code/docs/007273_6_1.0.png)-->
 
